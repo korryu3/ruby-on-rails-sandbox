@@ -66,6 +66,9 @@ class PostsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def post_params
-      params.expect(post: [ :title, :content, :comment ])
+      # mass-assignmentを防ぐために、許可するパラメータを指定する
+      # Laravelの$fillableに似ている
+      params.expect(post: [ :title, :content, :comment ])  # Rails 8以降の書き方
+      # params.require(:post).permit(:title, :content, :comment)  # Rails 8以前の書き方
     end
 end
