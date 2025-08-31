@@ -7,3 +7,15 @@ export async function fetchPosts() {
     if (!res.ok) throw new Error("Failed to fetch posts");
     return res.json();
 }
+
+export async function createPost(title: string, body: string) {
+    const res = await fetch(`${API_BASE}/posts`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ post: { title, body } }),
+    });
+    if (!res.ok) throw new Error("Failed to create post");
+    return res.json();
+}

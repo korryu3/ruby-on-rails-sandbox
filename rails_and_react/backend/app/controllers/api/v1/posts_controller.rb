@@ -39,7 +39,7 @@ class Api::V1::PostsController < ApplicationController
     end
 
     def post_params
-      params.expect(posts: %i[ title body ])
+      params.expect(post: [ :title, :body ])
     end
 
 end
