@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { createPost, fetchPosts } from './lib/api';
 import type { Post } from './types/post';
-
+import { PostInputSchema, type PostInput } from "./validation/post";
 import './App.css'
 
 function App() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [title, setTitle] = useState<string>("");
-  const [body, setBody] = useState<string>("");
+  const [values, setValues] = useState<PostInput>({ title: "", body: "" });
+  const [errors, setErrors] = useState<{ title?: string; body?: string }>({});
 
   useEffect(() => {
     // useEffectはPromiseを返せないため、thenで受け取る
@@ -16,11 +16,23 @@ function App() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();  // フォームのデフォルトの送信動作を防止(画面リロード防止)
+    setErrors({});
+    const r = PostInputSchema.safeParse(values);
+
+    if (!r.success) {
+      const es: { title?: string; body?: string } = {};
+      for (const issue of r.error.issues) {
+        const key = issue.path[0] as "title" | "body";
+        es[key] = issue.message;
+      }
+      setErrors(es);
+      return;
+    }
+
     try {
-      const newPost = await createPost(title, body);
-      setPosts([...posts, newPost]);
-      setTitle("");
-      setBody("");
+      const newPost = await createPost(values.title, values.body);
+      setPosts((prev) => [...prev, newPost]);
+      setValues({ title: "", body: "" });
     } catch (error) {
       console.error(error);
     }
@@ -33,15 +45,17 @@ function App() {
         <input
           type="text"
           placeholder='title'
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          value={values.title}
+          onChange={(e) => setValues(v => ({ ...v, title: e.target.value }))}
         />
+        {errors.title && <p role="alert">{errors.title}</p>}
         <input
           type="text"
           placeholder='body'
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
+          value={values.body}
+          onChange={(e) => setValues(v => ({ ...v, body: e.target.value }))}
         />
+        {errors.body && <p role="alert">{errors.body}</p>}
         <button type="submit">Create Post</button>
       </form>
 
